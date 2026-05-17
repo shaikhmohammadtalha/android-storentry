@@ -1,0 +1,223 @@
+<resources>
+    <string name="app_name">Storentry</string>
+    <string name="back">Back</string>
+    <string name="retry">Retry</string>
+    <string name="something_went_wrong">Something went wrong</string>
+    <string name="loading">Loading…</string>
+    <string name="unknown_error">An unexpected error occurred</string>
+    <string name="error_title">Error</string>
+
+    <!-- Splash -->
+    <string name="splash_title">Storentry</string>
+    <string name="splash_subtitle">Simple inventory management for local shops</string>
+    <string name="app_version">v1.0</string>
+
+    <!-- Welcome -->
+    <string name="welcome_offline_mode">100% Offline</string>
+    <string name="welcome_synced_locally">Saved completely offline on device</string>
+    <string name="welcome_title">Track inventory in seconds</string>
+    <string name="welcome_subtitle">Fast, reliable, and completely offline support for your shop</string>
+    <string name="welcome_privacy">Your data stays private on your device. Storentry respects your business privacy.</string>
+    <string name="no_signup_required">No signup required</string>
+    <string name="continue_btn">Continue →</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Track Inventory Easily</string>
+    <string name="onboarding_subtitle">Manage products, stock updates, and low stock alerts in seconds.</string>
+    <string name="onboarding_offline_title">Work Anywhere, Anytime</string>
+    <string name="onboarding_offline_subtitle">Full offline support ensures your data is always accessible, even without an internet connection.</string>
+    <string name="onboarding_alerts_title">Smart Stock Alerts</string>
+    <string name="onboarding_alerts_subtitle">Set minimum thresholds for automatic alerts, and schedule restock reminders after an hour or a day so you never run out of critical items.</string>
+    <string name="get_started">Get Started</string>
+    <string name="next">Next</string>
+    <string name="skip">Skip</string>
+
+    <!-- Bottom Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_products">Products</string>
+    <string name="nav_alerts">Alerts</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Dashboard / Home -->
+    <string name="dashboard_title">Storentry</string>
+    <string name="dashboard_greeting">Check your store\'s status today.</string>
+    <string name="total_products">Total Products</string>
+    <string name="low_stock">Low Stock</string>
+    <string name="inventory_value">Inventory Value</string>
+    <string name="quick_stock_update">Quick Stock Update</string>
+    <string name="weekly_performance">Weekly Performance</string>
+    <string name="sales_growth">+12% Sales Growth</string>
+    <string name="inventory_turnover_note">Your inventory turnover is faster than last week.</string>
+    <string name="low_stock_badge">Low Stock</string>
+    <string name="qty_low">%d packs left</string>
+    <string name="qty_units">Qty: %d units</string>
+    <string name="view_all">View All</string>
+    <string name="empty_products_title">No Products Found</string>
+    <string name="empty_products_description">You haven\'t added any products to your inventory yet.</string>
+    <string name="products_title">Products</string>
+    <string name="stock_qty">%d units</string>
+
+    <!-- Add Product -->
+    <string name="add_product_title">Add Product</string>
+    <string name="product_name">Product Name</string>
+    <string name="category">Category</string>
+    <string name="quantity">Quantity</string>
+    <string name="purchase_price">Purchase Price</string>
+    <string name="selling_price">Selling Price</string>
+    <string name="low_stock_threshold">Low Stock Threshold</string>
+    <string name="save_product">Save Product</string>
+    <string name="section_product_info">Product Information</string>
+    <string name="section_stock">Stock Details</string>
+    <string name="section_pricing">Pricing</string>
+
+    <!-- Product Details -->
+    <string name="product_details_title">Product Details</string>
+    <string name="stock_level">Stock Level</string>
+    <string name="price">Price</string>
+    <string name="edit">Edit</string>
+    <string name="qty_units_label">units in stock</string>
+    <string name="low_stock_threshold_label">Low stock threshold: %d units</string>
+    <string name="save_btn">Save</string>
+    <string name="reset_btn">Reset</string>
+    <string name="delete_confirm_title">Delete Product?</string>
+    <string name="delete_confirm_message">Are you sure you want to delete %s? This action cannot be undone unless restored from Activity History.</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="product_restored_toast">Product %s successfully restored!</string>
+
+    <!-- Product List -->
+    <string name="product_list_title">Products</string>
+    <string name="search_products">Search products…</string>
+    <string name="product_count">%d items</string>
+    <string name="no_search_results">No results found for this search</string>
+    <string name="out_of_stock">Out of stock</string>
+    <string name="updated_at">Updated %s</string>
+
+    <!-- Low Stock Alerts -->
+    <string name="low_stock_alerts_title">Low Stock Alerts</string>
+    <string name="items_below_threshold">Items Requiring Attention</string>
+    <string name="low_stock_count">%d items need restocking</string>
+    <string name="items_requiring_attention">Items requiring immediate attention</string>
+    <string name="qty_left">%d left</string>
+    <string name="reorder">Reorder</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Reports &amp; Analytics</string>
+    <string name="stock_movement">Inventory Summary</string>
+    <string name="stock_in">In Stock</string>
+    <string name="stock_out">Out of Stock</string>
+    <string name="adjustments">Low Stock</string>
+    <string name="top_moving_products">Top Valued Inventory</string>
+    <string name="category_distribution">Category Distribution</string>
+    <string name="out_of_stock_alerts">Out of Stock Alerts</string>
+    <string name="no_reports_yet">No Reports Yet</string>
+    <string name="no_products_reports_description">Add products to see inventory analytics and reports.</string>
+    <string name="sales_summary">Sales Summary</string>
+    <string name="top_products">Top Products</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="profile_name">Ramesh Electronics</string>
+    <string name="profile_phone">+91 98765 43210</string>
+    <string name="sign_in_title">Secure Your Data</string>
+    <string name="sign_in_subtitle">Sign in to backup your inventory and unlock premium features</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <!-- Web Client ID for Google Sign-In (Should be replaced with the actual client ID from Google Cloud Console) -->
+    <string name="default_web_client_id">187888077675-jm0lbhrjv5r8nhqr61861ulh1tq7urv8.apps.googleusercontent.com</string>
+    <string name="profile_settings">Profile</string>
+    <string name="notifications">Notifications</string>
+    <string name="data_backup">Data Backup</string>
+    <string name="contact_support">Contact Support</string>
+    <string name="about">About</string>
+    <string name="premium_title">Storentry Premium</string>
+    <string name="premium_subtitle">Unlock unlimited inventory, advanced reports &amp; priority support.</string>
+    <string name="section_account">Account</string>
+    <string name="section_app">App</string>
+    <string name="section_support">Support</string>
+    <string name="export_data">Export Data</string>
+    <string name="printer_settings">Printer Settings</string>
+    <string name="help_support">Help &amp; Support</string>
+    <string name="about_storentry">About Storentry</string>
+    <string name="logout">Logout</string>
+    <string name="last_backup_today">Last backup: Today, 10:00 AM</string>
+    <string name="export_formats">Excel, PDF reports</string>
+
+    <!-- Legacy / misc -->
+    <string name="home_title">Storentry</string>
+    <string name="add_item">Add Item</string>
+    <string name="no_data_title">No items yet</string>
+    <string name="no_data_desc">Tap the plus button to add your first item.</string>
+    <string name="item_prefix">Item %s</string>
+    <string name="scan_barcode_title">Scan Barcode</string>
+    <string name="manual_barcode_entry">Manual Barcode Entry</string>
+    <string name="search">Search</string>
+
+    <!-- Reminders -->
+    <string name="reminders_title">Reminders</string>
+    <string name="remind_to_update">Remind to update stock</string>
+    <string name="remind_in_1h">In 1 hour</string>
+    <string name="remind_in_4h">In 4 hours</string>
+    <string name="remind_tomorrow">Tomorrow</string>
+    <string name="reminder_set_msg">Reminder set successfully</string>
+
+    <!-- Subscription & Paywall -->
+    <string name="premium_banner_badge">PREMIUM</string>
+    <string name="premium_limit_reached">Product Limit Reached</string>
+    <string name="premium_limit_desc">Free tier is limited to 100 products. Upgrade to Storentry Premium to add unlimited products and grow your business!</string>
+    <string name="reminders_limit_reached">Reminder Limit Reached</string>
+    <string name="reminders_limit_desc">Free tier allows setting up to 5 reminders. Upgrade to Premium for unlimited stock update alarms.</string>
+    <string name="upgrade_button">Upgrade to Premium</string>
+    <string name="paywall_title">Unlock the Full Power of Storentry</string>
+    <string name="paywall_subtitle">Elevate your inventory management with professional tools designed for growth.</string>
+    <string name="paywall_price">₹199 / month</string>
+    <string name="paywall_cta">Subscribe Now</string>
+    <string name="paywall_restore">Restore Purchases</string>
+    <string name="paywall_benefits_1_title">Unlimited Products</string>
+    <string name="paywall_benefits_1_desc">Add more than 100 items to your catalog seamlessly.</string>
+    <string name="paywall_benefits_2_title">Advanced Reports &amp; Insights</string>
+    <string name="paywall_benefits_2_desc">Deep dive into sales trends and stock movement.</string>
+    <string name="paywall_benefits_3_title">Unlimited Alerts</string>
+    <string name="paywall_benefits_3_desc">Never miss low stock with unlimited reminders (currently 5).</string>
+    <string name="paywall_benefits_4_title">Priority Support &amp; Local Sync</string>
+    <string name="paywall_benefits_4_desc">Get help when you need it with our premium support queue and full offline support.</string>
+    <string name="premium_active_title">Active Subscriber</string>
+    <string name="premium_active_desc">Thank you! You are on the Premium plan. Your billing will renew automatically.</string>
+    <string name="cancel_subscription_tip">Subscription managed through Google Play Store. Cancel anytime.</string>
+
+    <!-- Cloud Sync Config Strings -->
+    <string name="settings_auto_sync">Auto-Sync to Cloud</string>
+    <string name="settings_auto_sync_subtitle_premium">Real-time automated backups</string>
+    <string name="settings_auto_sync_subtitle_free">Premium-only: Automated backups</string>
+    <string name="settings_sync_now">Sync Now</string>
+    <string name="settings_sync_now_subtitle_signed_in">Manually backup &amp; restore data</string>
+    <string name="settings_sync_now_subtitle_guest">Sign in to sync your data</string>
+    <!-- Help & Support -->
+    <string name="faq_title">Frequently Asked Questions</string>
+    <string name="faq_1_question">How do I add new products?</string>
+    <string name="faq_1_answer">Tap the floating primary (+) button on the home screen or go to the Products tab and click Add Item. Enter the name, selling price, and initial stock units.</string>
+    <string name="faq_2_question">Does Storentry work without internet?</string>
+    <string name="faq_2_answer">Yes, absolutely! Storentry operates 100% offline. All inventory records, alerts, and transaction history are stored securely inside your device database, making it lightning-fast and reliable even in zero-network areas.</string>
+    <string name="faq_3_question">What are Low Stock alerts?</string>
+    <string name="faq_3_answer">You can configure a custom low-stock threshold for each product. The moment your inventory drops below this number, the product status reflects \"Out of Stock\" or \"Low Stock\" with real-time reactive notifications.</string>
+    <string name="faq_4_question">How do cloud backups and syncs work?</string>
+    <string name="faq_4_answer">Free tier users can manually backup database updates by logging in and clicking \"Sync Now\" in Settings. Premium subscribers can toggle \"Auto-Sync\" to automatically upload and keep multiple devices synchronized in real-time.</string>
+    <string name="contact_desc">Still have questions or need specialized help? Tap below to connect directly with our active support desk.</string>
+    <string name="btn_email_support">Email Support</string>
+    <string name="btn_whatsapp_support">WhatsApp Chat</string>
+    <string name="support_email_address">shaikhmot@gmail.com</string>
+    <string name="support_whatsapp_number">+918097356465</string>
+
+    <!-- About Storentry -->
+    <string name="crafted_in_india">Proudly Crafted in India</string>
+    <string name="crafted_in_india_sub">Simplifying digital inventory for millions of local merchants and retail shops.</string>
+    <string name="about_description">Storentry is the fastest, cleanest offline-first inventory management application built to cater to grocery stores, kirana shops, electronics retailers, pharmacies, and small businesses. We prioritize speed, absolute data ownership, and simple operations without complex bloat.</string>
+    <string name="uvp_headline">Key Features &amp; Values</string>
+    <string name="uvp_1_title">Offline Reliability</string>
+    <string name="uvp_1_desc">Your business doesn\'t stop when the internet does. Absolute speed, reliability, and full functionality offline.</string>
+    <string name="uvp_2_title">Local &amp; Secure</string>
+    <string name="uvp_2_desc">Your data belongs to you. Zero tracking or mandatory cloud sign-ups, with voluntary secured backups.</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="copyright_text">© 2026 Storentry. All rights reserved.</string>
+</resources>

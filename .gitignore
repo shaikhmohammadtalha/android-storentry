@@ -1,0 +1,27 @@
+# Keys & secrets (NEVER commit these)
+local.properties
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+
+# Build outputs
+/build
+/app/build
+.gradle/
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Release
+release/
+
+# AGENTS
+.agents/
+AGENTS.md
+BEGINNER_GUIDE.md
+create_template.py
+LICENSE
