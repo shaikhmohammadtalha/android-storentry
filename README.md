@@ -23,6 +23,30 @@ The app works offline first, stores inventory locally with Room, supports quick 
 
 ---
 
+## 📸 Screenshots
+
+<table>
+  <tr>
+    <td align="center"><img src="metadata/images/phoneScreenshots/01_Home.png" width="220" alt="Storentry home dashboard" /><br /><sub>Home</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/02_Add_Product.png" width="220" alt="Add product screen" /><br /><sub>Add Product</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/03_Products.png" width="220" alt="Products list screen" /><br /><sub>Products</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="metadata/images/phoneScreenshots/04_Low_Stock_Alerts.png" width="220" alt="Low stock alerts screen" /><br /><sub>Low Stock Alerts</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/05_Products_details.png" width="220" alt="Product details screen" /><br /><sub>Product Details</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/06_Notifications.png" width="220" alt="Notifications screen" /><br /><sub>Notifications</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="metadata/images/phoneScreenshots/07_Activity_History.png" width="220" alt="Activity history screen" /><br /><sub>Activity History</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/08_Reports_and_Analytics.png" width="220" alt="Reports and analytics screen" /><br /><sub>Reports</sub></td>
+    <td align="center"><img src="metadata/images/phoneScreenshots/09_Google_Backup.png" width="220" alt="Google backup screen" /><br /><sub>Google Backup</sub></td>
+  </tr>
+</table>
+
+<br />
+
+---
+
 ## ✨ Why Storentry?
 
 Storentry is made for speed, clarity, and reliability in real shop environments.

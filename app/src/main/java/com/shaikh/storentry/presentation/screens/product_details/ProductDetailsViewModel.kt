@@ -77,6 +77,14 @@ class ProductDetailsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.updateStock(productId, newQuantity)
+                
+                // Track stock updated event
+                val updateParams = android.os.Bundle().apply {
+                    putString(AnalyticsManager.Params.PRODUCT_ID, productId)
+                    putString("new_quantity", newQuantity.toString())
+                }
+                analyticsManager.logEvent(AnalyticsManager.Events.STOCK_UPDATED, updateParams)
+
                 fetchProduct(productId, refreshOnly = true)
             } catch (e: Exception) {
                 Timber.e(e, "Error updating stock")

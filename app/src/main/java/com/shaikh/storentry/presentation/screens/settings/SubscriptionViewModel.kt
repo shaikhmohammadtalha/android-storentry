@@ -2,7 +2,7 @@ package com.shaikh.storentry.presentation.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.shaikh.storentry.domain.model.SubscriptionStatus
+import com.shaikh.storentry.domain.model.SubscriptionState
 import com.shaikh.storentry.domain.repository.SubscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,15 +21,15 @@ class SubscriptionViewModel @Inject constructor(
 ) : ViewModel() {
 
     /**
-     * Hot StateFlow exposing the user's active entitlement tier.
-     * Starts with a Loading state, optimistically fallback to DataStore, and fetches RevenueCat update.
+     * Hot StateFlow exposing the user's active entitlement state.
+     * Starts with a default cached state, optimistically fallbacks to DataStore, and fetches RevenueCat update.
      */
-    val subscriptionStatus: StateFlow<SubscriptionStatus> =
-        subscriptionRepository.observeSubscriptionStatus()
+    val subscriptionState: StateFlow<SubscriptionState> =
+        subscriptionRepository.observeSubscriptionState()
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = SubscriptionStatus.Loading
+                initialValue = SubscriptionState(false, emptyList(), null)
             )
 
     init {

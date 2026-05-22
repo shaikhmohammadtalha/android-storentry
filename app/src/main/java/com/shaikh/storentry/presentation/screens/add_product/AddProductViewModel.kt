@@ -73,6 +73,14 @@ class AddProductViewModel @Inject constructor(
                     lowStockThreshold = threshold.toIntOrNull() ?: 0
                 )
                 repository.addProduct(product)
+                
+                // Track product added event
+                val addedParams = android.os.Bundle().apply {
+                    putString(AnalyticsManager.Params.PRODUCT_ID, product.id)
+                    putString(AnalyticsManager.Params.PRODUCT_NAME, product.name)
+                }
+                analyticsManager.logEvent(AnalyticsManager.Events.PRODUCT_ADDED, addedParams)
+
                 _uiState.value = UiState.Success(Unit)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Failed to save product")

@@ -6,6 +6,7 @@ import com.shaikh.storentry.domain.model.HistoryRecord
 data class ActivityHistoryUiState(
     val records: List<HistoryRecord> = emptyList(),
     val filteredRecords: List<HistoryRecord> = emptyList(),
+    val groupedRecords: Map<String, List<HistoryRecord>> = emptyMap(),
     val selectedFilter: HistoryFilter = HistoryFilter.ALL,
     val isLoading: Boolean = false,
     val error: String? = null

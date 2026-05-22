@@ -62,6 +62,11 @@ class AnalyticsManager @Inject constructor(
         const val BUTTON_CLICKED = "button_clicked"
         const val NOTIFICATION_OPENED = "notification_opened"
         
+        // MVP Core Metrics
+        const val PRODUCT_ADDED = "product_added"
+        const val STOCK_UPDATED = "stock_updated"
+        const val LOW_STOCK_NOTIFICATION_OPENED = "low_stock_notification_opened"
+        
         // Subscription telemetry
         const val PAYWALL_VIEWED = "paywall_viewed"
         const val PREMIUM_PURCHASED = "premium_purchased"

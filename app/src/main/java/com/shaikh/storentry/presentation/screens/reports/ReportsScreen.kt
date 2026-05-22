@@ -46,7 +46,8 @@ import com.shaikh.storentry.R
 import com.shaikh.storentry.presentation.components.AppCard
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.remember
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.domain.model.Product
 import com.shaikh.storentry.presentation.components.EmptyStateView
 import com.shaikh.storentry.presentation.components.LoadingView
@@ -90,6 +91,15 @@ fun ReportsScreen(
                 )
                 is UiState.Success -> {
                     val data = state.data
+                    
+                    val topCategories = remember(data.categoryDistribution) {
+                        data.categoryDistribution.toList().take(5)
+                    }
+                    
+                    val topValuedProductsIndexed = remember(data.topValuedProducts) {
+                        data.topValuedProducts.withIndex().toList()
+                    }
+                    
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(16.dp),
@@ -156,7 +166,7 @@ fun ReportsScreen(
                         }
 
                         // Category Distribution
-                        if (data.categoryDistribution.isNotEmpty()) {
+                        if (topCategories.isNotEmpty()) {
                             val totalValue = data.totalInventoryValue
                             item {
                                 Text(
@@ -169,7 +179,7 @@ fun ReportsScreen(
                             item {
                                 AppCard(modifier = Modifier.fillMaxWidth()) {
                                     Column(modifier = Modifier.padding(16.dp)) {
-                                        data.categoryDistribution.toList().take(5).forEachIndexed { index, (category, value) ->
+                                        topCategories.forEachIndexed { index, (category, value) ->
                                             val proportion = if (totalValue > 0) (value / totalValue).toFloat() else 0f
                                             val categoryColor = getCategoryColor(index)
                                             
@@ -224,7 +234,7 @@ fun ReportsScreen(
                         }
 
                         // Top Valued Products
-                        if (data.topValuedProducts.isNotEmpty()) {
+                        if (topValuedProductsIndexed.isNotEmpty()) {
                             item {
                                 Text(
                                     text = stringResource(R.string.top_moving_products),
@@ -233,7 +243,7 @@ fun ReportsScreen(
                                 )
                             }
 
-                            items(data.topValuedProducts.withIndex().toList()) { (index, product) ->
+                            items(topValuedProductsIndexed, key = { it.value.id }) { (index, product) ->
                                 TopProductRow(
                                     rank = index + 1,
                                     product = product,
@@ -290,9 +300,8 @@ fun StockMovementBar(label: String, value: Int, total: Int, color: Color) {
 fun TopProductRow(rank: Int, product: Product, onClick: () -> Unit) {
     val totalValue = product.sellingPrice * product.quantity
     AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(14.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Surface(

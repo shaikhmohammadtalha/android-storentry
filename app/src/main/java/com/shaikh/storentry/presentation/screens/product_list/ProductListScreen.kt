@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.R
 import com.shaikh.storentry.presentation.components.*
 import com.shaikh.storentry.utils.UiState
@@ -83,7 +83,6 @@ fun ProductListScreen(
                 is UiState.Error -> ErrorView(message = state.message, onRetry = { viewModel.fetchProducts() })
                 is UiState.Success -> {
                     val products = state.data
-                    val searchQuery by viewModel.searchQuery.collectAsState()
 
                     LazyColumn(
                         modifier = Modifier
@@ -97,33 +96,17 @@ fun ProductListScreen(
                         ),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Search Field
+                        // Search Field - isolated state collection to prevent full LazyColumn recomposition
                         item {
-                            OutlinedTextField(
-                                value = searchQuery,
-                                onValueChange = { viewModel.onSearchQueryChange(it) },
+                            ProductSearchBar(
+                                viewModel = viewModel,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 8.dp),
-                                placeholder = { Text(stringResource(id = R.string.search_products)) },
-                                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                                trailingIcon = {
-                                    if (searchQuery.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
-                                            Icon(Icons.Default.Clear, contentDescription = "Clear")
-                                        }
-                                    }
-                                },
-                                shape = RoundedCornerShape(14.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                                    focusedContainerColor = MaterialTheme.colorScheme.surface
-                                ),
-                                singleLine = true
+                                    .padding(vertical = 8.dp)
                             )
                         }
 
-                        if (products.isEmpty() && searchQuery.isNotEmpty()) {
+                        if (products.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier
@@ -139,7 +122,7 @@ fun ProductListScreen(
                                 }
                             }
                         } else {
-                            items(products) { product ->
+                            items(products, key = { it.id }) { product ->
                                 ProductItem(
                                     product = product,
                                     onClick = { onNavigateToProductDetails(product.id) }
@@ -152,6 +135,38 @@ fun ProductListScreen(
             }
         }
     }
+}
+
+/**
+ * Isolated search bar composable to prevent typing inputs from causing parent recompositions.
+ */
+@Composable
+fun ProductSearchBar(
+    viewModel: ProductListViewModel,
+    modifier: Modifier = Modifier
+) {
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    
+    OutlinedTextField(
+        value = searchQuery,
+        onValueChange = { viewModel.onSearchQueryChange(it) },
+        modifier = modifier,
+        placeholder = { Text(stringResource(id = R.string.search_products)) },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = {
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                }
+            }
+        },
+        shape = RoundedCornerShape(14.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedContainerColor = MaterialTheme.colorScheme.surface
+        ),
+        singleLine = true
+    )
 }
 
 @Composable

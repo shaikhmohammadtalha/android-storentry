@@ -30,7 +30,8 @@ class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val cloudSyncManager: com.shaikh.storentry.data.sync.CloudSyncManager,
     private val preferenceRepository: com.shaikh.storentry.domain.repository.PreferenceRepository,
-    private val productRepository: com.shaikh.storentry.domain.repository.ProductRepository
+    private val productRepository: com.shaikh.storentry.domain.repository.ProductRepository,
+    private val subscriptionRepository: com.shaikh.storentry.domain.repository.SubscriptionRepository
 ) : ViewModel() {
 
     val currentUser = authRepository.currentUser
@@ -60,6 +61,9 @@ class SettingsViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = false
         )
+
+    private val _syncConflictState = MutableStateFlow<com.shaikh.storentry.data.sync.SyncConflictState>(com.shaikh.storentry.data.sync.SyncConflictState.Idle)
+    val syncConflictState = _syncConflictState.asStateFlow()
 
     fun signInWithGoogle(context: Context) {
         viewModelScope.launch {
@@ -94,9 +98,15 @@ class SettingsViewModel @Inject constructor(
                     credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
                 ) {
                     val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                    val result = authRepository.signInWithGoogle(googleIdTokenCredential.idToken)
-                    if (result.isSuccess) {
-                        cloudSyncManager.syncOnSignIn()
+                    val signInResult = authRepository.signInWithGoogle(googleIdTokenCredential.idToken)
+                    if (signInResult.isSuccess) {
+                        val localCount = cloudSyncManager.getLocalProductCount()
+                        val remoteCount = cloudSyncManager.getRemoteProductCount()
+                        if (localCount > 0 && remoteCount > 0) {
+                            _syncConflictState.value = com.shaikh.storentry.data.sync.SyncConflictState.Conflict(localCount, remoteCount)
+                        } else {
+                            cloudSyncManager.syncOnSignIn()
+                        }
                     }
                 } else {
                     Timber.e("Unexpected credential type: ${credential.type}")
@@ -110,6 +120,25 @@ class SettingsViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    fun resolveConflict(resolution: com.shaikh.storentry.data.sync.SyncConflictResolution) {
+        viewModelScope.launch {
+            _syncConflictState.value = com.shaikh.storentry.data.sync.SyncConflictState.Resolving
+            _isSyncing.value = true
+            try {
+                cloudSyncManager.resolveConflictAndSync(resolution)
+            } catch (e: Exception) {
+                Timber.e(e, "Conflict resolution failed")
+            } finally {
+                _syncConflictState.value = com.shaikh.storentry.data.sync.SyncConflictState.Idle
+                _isSyncing.value = false
+            }
+        }
+    }
+
+    fun dismissConflictDialog() {
+        _syncConflictState.value = com.shaikh.storentry.data.sync.SyncConflictState.Idle
     }
 
     fun setAutoSyncEnabled(enabled: Boolean) {
@@ -139,6 +168,26 @@ class SettingsViewModel @Inject constructor(
             withContext(NonCancellable) {
                 cloudSyncManager.syncOnSignOut()
                 authRepository.signOut()
+            }
+        }
+    }
+
+    val isDebugForcePremiumEnabled = if (com.shaikh.storentry.BuildConfig.DEBUG) {
+        preferenceRepository.isDebugForcePremium()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = false
+            )
+    } else {
+        MutableStateFlow(false)
+    }
+
+    fun setDebugForcePremium(enabled: Boolean) {
+        if (com.shaikh.storentry.BuildConfig.DEBUG) {
+            viewModelScope.launch {
+                preferenceRepository.setDebugForcePremium(enabled)
+                subscriptionRepository.refreshSubscriptionStatus()
             }
         }
     }

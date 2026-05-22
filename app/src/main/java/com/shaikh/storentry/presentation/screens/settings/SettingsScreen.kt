@@ -15,7 +15,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,8 +32,10 @@ import androidx.compose.ui.unit.sp
 import com.shaikh.storentry.R
 import com.shaikh.storentry.presentation.components.AppCard
 import coil.compose.AsyncImage
-import com.shaikh.storentry.domain.model.SubscriptionStatus
+import com.shaikh.storentry.domain.model.SubscriptionState
 import com.shaikh.storentry.domain.model.User
+import com.shaikh.storentry.data.sync.SyncConflictState
+import com.shaikh.storentry.data.sync.SyncConflictResolution
 
 /**
  * SettingsScreen — Premium UI for managing shop settings and account info.
@@ -40,7 +44,7 @@ import com.shaikh.storentry.domain.model.User
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    subscriptionStatus: SubscriptionStatus,
+    subscriptionState: SubscriptionState,
     user: User?,
     autoSyncEnabled: Boolean,
     isSyncing: Boolean,
@@ -57,8 +61,166 @@ fun SettingsScreen(
     onNavigateToHelpSupport: () -> Unit,
     onNavigateToAboutStorentry: () -> Unit,
     onSignInClick: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    isDebugForcePremiumEnabled: Boolean = false,
+    onDebugForcePremiumToggle: (Boolean) -> Unit = {},
+    syncConflictState: SyncConflictState = SyncConflictState.Idle,
+    onResolveConflict: (SyncConflictResolution) -> Unit = {},
+    onDismissConflictDialog: () -> Unit = {}
 ) {
+    // Sync Conflict Dialog
+    if (syncConflictState is SyncConflictState.Conflict) {
+        var selectedOption by androidx.compose.runtime.remember {
+            androidx.compose.runtime.mutableStateOf(SyncConflictResolution.MERGE_CLOUD_MAIN)
+        }
+
+        AlertDialog(
+            onDismissRequest = onDismissConflictDialog,
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(id = R.string.sync_conflict_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.sync_conflict_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                            modifier = Modifier.weight(1f).padding(end = 6.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.sync_conflict_local_count, syncConflictState.localCount),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+                            modifier = Modifier.weight(1f).padding(start = 6.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = stringResource(id = R.string.sync_conflict_remote_count, syncConflictState.remoteCount),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.tertiary
+                                )
+                            }
+                        }
+                    }
+
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SyncConflictOptionRow(
+                            title = stringResource(id = R.string.sync_option_merge_cloud),
+                            description = stringResource(id = R.string.sync_option_merge_cloud_desc),
+                            selected = selectedOption == SyncConflictResolution.MERGE_CLOUD_MAIN,
+                            onClick = { selectedOption = SyncConflictResolution.MERGE_CLOUD_MAIN }
+                        )
+                        SyncConflictOptionRow(
+                            title = stringResource(id = R.string.sync_option_merge_local),
+                            description = stringResource(id = R.string.sync_option_merge_local_desc),
+                            selected = selectedOption == SyncConflictResolution.MERGE_LOCAL_MAIN,
+                            onClick = { selectedOption = SyncConflictResolution.MERGE_LOCAL_MAIN }
+                        )
+                        SyncConflictOptionRow(
+                            title = stringResource(id = R.string.sync_option_overwrite_local),
+                            description = stringResource(id = R.string.sync_option_overwrite_local_desc),
+                            selected = selectedOption == SyncConflictResolution.OVERWRITE_LOCAL_BY_CLOUD,
+                            onClick = { selectedOption = SyncConflictResolution.OVERWRITE_LOCAL_BY_CLOUD }
+                        )
+                        SyncConflictOptionRow(
+                            title = stringResource(id = R.string.sync_option_overwrite_cloud),
+                            description = stringResource(id = R.string.sync_option_overwrite_cloud_desc),
+                            selected = selectedOption == SyncConflictResolution.OVERWRITE_CLOUD_BY_LOCAL,
+                            onClick = { selectedOption = SyncConflictResolution.OVERWRITE_CLOUD_BY_LOCAL }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { onResolveConflict(selectedOption) },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.btn_resolve),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismissConflictDialog) {
+                    Text(
+                        text = stringResource(id = R.string.cancel),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+        )
+    } else if (syncConflictState is SyncConflictState.Resolving) {
+        AlertDialog(
+            onDismissRequest = {},
+            shape = RoundedCornerShape(20.dp),
+            title = {
+                Text(
+                    text = "Resolving Conflict...",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                    Text(
+                        text = "Synchronizing databases, please wait...",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            confirmButton = {}
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -220,19 +382,15 @@ fun SettingsScreen(
 
             // Settings Sections
             SettingsSection(title = stringResource(id = R.string.section_account)) {
-                val subText = when (subscriptionStatus) {
-                    is SubscriptionStatus.Premium -> "Storentry Premium (Active)"
-                    is SubscriptionStatus.Free -> "Storentry Free (Tap to Upgrade)"
-                    else -> "Checking Status..."
-                }
-                val subIcon = if (subscriptionStatus is SubscriptionStatus.Premium) Icons.Default.Stars else Icons.Default.CardMembership
+                val isPremium = subscriptionState.isPremium
+                val subText = if (isPremium) "Storentry Premium (Active)" else "Storentry Free (Tap to Upgrade)"
+                val subIcon = if (isPremium) Icons.Default.Stars else Icons.Default.CardMembership
                 SettingsItem(
                     icon = subIcon,
                     title = "Subscription Tier",
                     subtitle = subText,
                     onClick = onNavigateToPaywall
                 )
-                val isPremium = subscriptionStatus is SubscriptionStatus.Premium
                 
                 // Auto Sync Toggle
                 SettingsToggleItem(
@@ -311,6 +469,18 @@ fun SettingsScreen(
                     title = stringResource(id = R.string.about_storentry),
                     onClick = onNavigateToAboutStorentry
                 )
+            }
+
+            if (com.shaikh.storentry.BuildConfig.DEBUG) {
+                SettingsSection(title = stringResource(id = R.string.dev_section_title)) {
+                    SettingsToggleItem(
+                        icon = Icons.Default.BugReport,
+                        title = stringResource(id = R.string.dev_force_premium),
+                        subtitle = stringResource(id = R.string.dev_force_premium_subtitle),
+                        checked = isDebugForcePremiumEnabled,
+                        onCheckedChange = onDebugForcePremiumToggle
+                    )
+                }
             }
 
             // Logout Button (Only show if logged in)
@@ -591,6 +761,52 @@ fun SettingsActionItem(
                     contentDescription = null,
                     tint = if (enabled) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                     modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SyncConflictOptionRow(
+    title: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(
+            width = 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+        ),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = onClick,
+                colors = RadioButtonDefaults.colors(
+                    selectedColor = MaterialTheme.colorScheme.primary
+                )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
         }

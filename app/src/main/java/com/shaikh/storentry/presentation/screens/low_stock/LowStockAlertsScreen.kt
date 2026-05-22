@@ -43,7 +43,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.R
 import com.shaikh.storentry.presentation.components.*
 import com.shaikh.storentry.utils.UiState
@@ -182,7 +182,7 @@ fun LowStockAlertsScreen(
                             )
                         }
 
-                        items(alertItems) { product ->
+                        items(alertItems, key = { it.id }) { product ->
                             LowStockAlertCard(
                                 product = product,
                                 onClick = { onNavigateToProductDetails(product.id) }
@@ -205,9 +205,8 @@ fun LowStockAlertCard(
     onClick: () -> Unit
 ) {
     AppCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier

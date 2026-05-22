@@ -38,6 +38,16 @@ interface PreferenceRepository {
     suspend fun setPremiumExpiry(expiry: Long)
 
     /**
+     * Returns a flow of active entitlements list.
+     */
+    fun getActiveEntitlements(): Flow<List<String>>
+
+    /**
+     * Caches the active entitlements list.
+     */
+    suspend fun setActiveEntitlements(entitlements: List<String>)
+
+    /**
      * Returns a flow indicating if auto sync is enabled.
      */
     fun isAutoSyncEnabled(): Flow<Boolean>
@@ -46,4 +56,15 @@ interface PreferenceRepository {
      * Sets the auto sync status.
      */
     suspend fun setAutoSyncEnabled(enabled: Boolean)
+
+    /**
+     * Returns a flow indicating if premium is forced for debugging purposes.
+     * Must be ignored in release builds.
+     */
+    fun isDebugForcePremium(): Flow<Boolean>
+
+    /**
+     * Toggles the debug-only premium override.
+     */
+    suspend fun setDebugForcePremium(enabled: Boolean)
 }

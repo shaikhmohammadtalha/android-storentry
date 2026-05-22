@@ -37,7 +37,7 @@ import kotlinx.coroutines.delay
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 /**
  * SplashScreen displayed on app launch.

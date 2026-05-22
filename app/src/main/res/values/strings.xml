@@ -220,4 +220,33 @@
     <string name="terms_of_service">Terms of Service</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="copyright_text">© 2026 Storentry. All rights reserved.</string>
+    <string name="subscription_renewal_disclosure">Subscription automatically renews at the end of each period unless cancelled at least 24 hours prior. Manage your subscription in Google Play.</string>
+    <!-- Debug / Developer Settings -->
+    <string name="dev_section_title">Developer Settings (Debug Only)</string>
+    <string name="dev_force_premium">Force Premium Status</string>
+    <string name="dev_force_premium_subtitle">Bypasses all billing checks locally for testing</string>
+
+    <!-- URLs for Legal Terms -->
+    <string name="url_privacy_policy">https://github.com/shaikhmohammadtalha/android-storentry/blob/main/Privacy_Policy</string>
+    <string name="url_terms_of_service">https://github.com/shaikhmohammadtalha/android-storentry/blob/main/Terms_of_Service</string>
+
+    <!-- Sync Conflict Dialog -->
+    <string name="sync_conflict_title">Sync Data Conflict</string>
+    <string name="sync_conflict_desc">We found inventory records on both this device and your cloud backup. Please choose how you want to handle the conflict:</string>
+    <string name="sync_conflict_local_count">Device records: %1$d</string>
+    <string name="sync_conflict_remote_count">Cloud records: %1$d</string>
+    <string name="sync_option_merge_cloud">Merge (Cloud is Primary)</string>
+    <string name="sync_option_merge_cloud_desc">Combine records. For duplicate IDs, use Cloud values.</string>
+    <string name="sync_option_merge_local">Merge (Device is Primary)</string>
+    <string name="sync_option_merge_local_desc">Combine records. For duplicate IDs, use Device values.</string>
+    <string name="sync_option_overwrite_local">Overwrite Device with Cloud</string>
+    <string name="sync_option_overwrite_local_desc">Wipe all local data and load Cloud database.</string>
+    <string name="sync_option_overwrite_cloud">Overwrite Cloud with Device</string>
+    <string name="sync_option_overwrite_cloud_desc">Wipe all cloud data and upload Device database.</string>
+    <string name="btn_resolve">Resolve Sync</string>
+
+    <!-- Sign-In Required Dialog -->
+    <string name="sign_in_required_title">Sign In Required</string>
+    <string name="sign_in_required_desc">You must sign in with your Google account before purchasing or activating Storentry Premium. Your subscription is linked to your account for secure backup and restoration.</string>
+    <string name="btn_go_to_sign_in">Go to Sign In</string>
 </resources>

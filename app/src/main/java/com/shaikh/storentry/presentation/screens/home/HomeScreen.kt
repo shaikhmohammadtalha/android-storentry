@@ -56,7 +56,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.R
 import com.shaikh.storentry.domain.model.Product
 import com.shaikh.storentry.presentation.components.AppBottomBar
@@ -262,7 +262,7 @@ fun HomeScreen(
                                 }
                             }
                         } else {
-                            items(data.recentProducts) { product ->
+                            items(data.recentProducts, key = { it.id }) { product ->
                                 QuickStockRow(
                                     product = product,
                                     onIncrement = { viewModel.updateStock(product, 1) },

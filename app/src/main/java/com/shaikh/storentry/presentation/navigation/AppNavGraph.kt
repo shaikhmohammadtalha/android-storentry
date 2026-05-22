@@ -1,14 +1,16 @@
 package com.shaikh.storentry.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.remember
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.shaikh.storentry.domain.model.SubscriptionStatus
+import com.shaikh.storentry.domain.model.SubscriptionState
 import com.shaikh.storentry.presentation.screens.splash.SplashScreen
 import com.shaikh.storentry.presentation.screens.home.HomeScreen
 import com.shaikh.storentry.presentation.screens.add_product.AddProductScreen
@@ -32,10 +34,46 @@ import com.shaikh.storentry.presentation.screens.about.AboutStorentryScreen
  * Main navigation graph for the application.
  */
 @Composable
-fun AppNavGraph() {
+fun AppNavGraph(
+    pendingProductId: String? = null,
+    onNotificationHandled: () -> Unit = {}
+) {
     val navController = rememberNavController()
     val subscriptionViewModel: SubscriptionViewModel = hiltViewModel()
-    val subscriptionStatus by subscriptionViewModel.subscriptionStatus.collectAsState()
+    val subscriptionState by subscriptionViewModel.subscriptionState.collectAsState()
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val analyticsManager = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            com.shaikh.storentry.di.AnalyticsEntryPoint::class.java
+        ).analyticsManager()
+    }
+
+    LaunchedEffect(pendingProductId) {
+        if (pendingProductId != null) {
+            // Track the low stock notification opened event with the product id
+            val bundle = android.os.Bundle().apply {
+                putString(com.shaikh.storentry.util.analytics.AnalyticsManager.Params.PRODUCT_ID, pendingProductId)
+                putString(com.shaikh.storentry.util.analytics.AnalyticsManager.Params.SOURCE, "system_notification")
+            }
+            analyticsManager.logEvent(
+                com.shaikh.storentry.util.analytics.AnalyticsManager.Events.LOW_STOCK_NOTIFICATION_OPENED,
+                bundle
+            )
+
+            // Direct route type-safe navigation to Product Details
+            navController.navigate(Screen.ProductDetails(pendingProductId)) {
+                // Ensure we clear previous details screen instances and transition smoothly
+                popUpTo(Screen.Home) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+
+            // Consume/clear the pending state
+            onNotificationHandled()
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -176,10 +214,12 @@ fun AppNavGraph() {
             val autoSyncEnabled by settingsViewModel.autoSyncEnabled.collectAsState()
             val isSyncing by settingsViewModel.isSyncing.collectAsState()
             val hasAlerts by settingsViewModel.hasAlerts.collectAsState()
+            val isDebugForcePremiumEnabled by settingsViewModel.isDebugForcePremiumEnabled.collectAsState()
+            val syncConflictState by settingsViewModel.syncConflictState.collectAsState()
             val context = androidx.compose.ui.platform.LocalContext.current
             
             SettingsScreen(
-                subscriptionStatus = subscriptionStatus,
+                subscriptionState = subscriptionState,
                 user = user,
                 autoSyncEnabled = autoSyncEnabled,
                 isSyncing = isSyncing,
@@ -227,6 +267,17 @@ fun AppNavGraph() {
                 },
                 onNavigateToAboutStorentry = {
                     navController.navigate(Screen.AboutStorentry)
+                },
+                isDebugForcePremiumEnabled = isDebugForcePremiumEnabled,
+                onDebugForcePremiumToggle = { enabled ->
+                    settingsViewModel.setDebugForcePremium(enabled)
+                },
+                syncConflictState = syncConflictState,
+                onResolveConflict = { resolution ->
+                    settingsViewModel.resolveConflict(resolution)
+                },
+                onDismissConflictDialog = {
+                    settingsViewModel.dismissConflictDialog()
                 }
             )
         }
@@ -260,6 +311,12 @@ fun AppNavGraph() {
                 onNavigateBack = { navController.navigateUp() },
                 onPurchaseSuccess = {
                     navController.navigateUp()
+                },
+                onNavigateToSettings = {
+                    navController.navigateUp()
+                    navController.navigate(Screen.Settings) {
+                        launchSingleTop = true
+                    }
                 }
             )
         }

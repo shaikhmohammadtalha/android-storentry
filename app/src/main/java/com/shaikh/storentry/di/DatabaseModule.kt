@@ -18,12 +18,21 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(
+        val builder = Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             Constants.DATABASE_NAME
-        ).fallbackToDestructiveMigration()
-            .build()
+        ).addMigrations(
+            AppDatabase.MIGRATION_1_2,
+            AppDatabase.MIGRATION_2_3,
+            AppDatabase.MIGRATION_3_4
+        )
+        
+        if (com.shaikh.storentry.BuildConfig.DEBUG) {
+            builder.fallbackToDestructiveMigration()
+        }
+        
+        return builder.build()
     }
 
     @Provides

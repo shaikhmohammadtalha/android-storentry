@@ -35,7 +35,7 @@ import com.shaikh.storentry.presentation.components.ErrorView
 import com.shaikh.storentry.presentation.components.LoadingView
 import com.shaikh.storentry.utils.UiState
 
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.domain.model.Product
 
 /**

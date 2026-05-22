@@ -9,8 +9,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 import javax.inject.Inject
 
 data class ReportsData(
@@ -37,42 +39,43 @@ class ReportsViewModel @Inject constructor(
 
     private fun fetchReportsData() {
         viewModelScope.launch {
-            combine(
-                repository.getAllProducts(),
-                repository.getProductCount(),
-                repository.getTotalInventoryValue()
-            ) { allProducts, count, totalValue ->
-                val inStock = allProducts.count { it.quantity > it.lowStockThreshold }
-                val outOfStock = allProducts.count { it.quantity == 0 }
-                val lowStock = allProducts.count { it.quantity in 1..it.lowStockThreshold }
-                
-                val topValued = allProducts
-                    .sortedByDescending { it.sellingPrice * it.quantity }
-                    .take(5)
+            repository.getAllProducts()
+                .map { allProducts ->
+                    val count = allProducts.size
+                    val totalValue = allProducts.sumOf { it.sellingPrice * it.quantity }
+                    val inStock = allProducts.count { it.quantity > it.lowStockThreshold }
+                    val outOfStock = allProducts.count { it.quantity == 0 }
+                    val lowStock = allProducts.count { it.quantity in 1..it.lowStockThreshold }
+                    
+                    val topValued = allProducts
+                        .sortedByDescending { it.sellingPrice * it.quantity }
+                        .take(5)
 
-                val categoryDist = allProducts
-                    .groupBy { it.category }
-                    .mapValues { entry -> entry.value.sumOf { it.sellingPrice * it.quantity } }
-                    .toList()
-                    .sortedByDescending { it.second }
-                    .toMap()
+                    val categoryDist = allProducts
+                        .groupBy { it.category }
+                        .mapValues { entry -> entry.value.sumOf { it.sellingPrice * it.quantity } }
+                        .toList()
+                        .sortedByDescending { it.second }
+                        .toMap()
 
-                ReportsData(
-                    totalProducts = count,
-                    totalInventoryValue = totalValue,
-                    inStockCount = inStock,
-                    outOfStockCount = outOfStock,
-                    lowStockCount = lowStock,
-                    topValuedProducts = topValued,
-                    categoryDistribution = categoryDist
-                )
-            }.collect { data ->
-                if (data.totalProducts == 0) {
-                    _uiState.value = UiState.Empty
-                } else {
-                    _uiState.value = UiState.Success(data)
+                    ReportsData(
+                        totalProducts = count,
+                        totalInventoryValue = totalValue,
+                        inStockCount = inStock,
+                        outOfStockCount = outOfStock,
+                        lowStockCount = lowStock,
+                        topValuedProducts = topValued,
+                        categoryDistribution = categoryDist
+                    )
                 }
-            }
+                .flowOn(Dispatchers.Default)
+                .collect { data ->
+                    if (data.totalProducts == 0) {
+                        _uiState.value = UiState.Empty
+                    } else {
+                        _uiState.value = UiState.Success(data)
+                    }
+                }
         }
     }
 }

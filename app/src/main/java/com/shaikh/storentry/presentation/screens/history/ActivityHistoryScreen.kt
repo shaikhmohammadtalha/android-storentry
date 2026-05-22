@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -22,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.R
 import com.shaikh.storentry.domain.model.HistoryActionType
 import com.shaikh.storentry.domain.model.HistoryRecord
@@ -121,12 +122,12 @@ fun ActivityHistoryScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    val groupedRecords = groupRecordsByDate(uiState.filteredRecords)
+                    val groupedRecords = uiState.groupedRecords
                     groupedRecords.forEach { (dateHeader, records) ->
-                        item {
+                        item(key = dateHeader) {
                             DateHeader(text = dateHeader)
                         }
-                        items(records) { record ->
+                        items(records, key = { it.id }) { record ->
                             HistoryItem(
                                 record = record,
                                 onUndoClick = { viewModel.undoDelete(record) }
@@ -164,6 +165,7 @@ fun HistoryItem(
     onUndoClick: () -> Unit = {}
 ) {
     val iconInfo = getIconInfo(record.actionType)
+    val formattedTime = remember(record.timestamp) { formatTime(record.timestamp) }
     
     AppCard(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -200,7 +202,7 @@ fun HistoryItem(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = formatTime(record.timestamp),
+                        text = formattedTime,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )
@@ -238,7 +240,7 @@ fun HistoryItem(
                         border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Undo,
+                            imageVector = Icons.AutoMirrored.Filled.Undo,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )

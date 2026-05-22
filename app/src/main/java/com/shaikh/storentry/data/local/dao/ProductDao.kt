@@ -41,4 +41,7 @@ interface ProductDao {
 
     @Query("SELECT DISTINCT category FROM products ORDER BY category ASC")
     fun getDistinctCategories(): Flow<List<String>>
+
+    @Query("DELETE FROM products")
+    suspend fun deleteAllProducts()
 }

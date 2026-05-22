@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import com.shaikh.storentry.domain.repository.PreferenceRepository
@@ -27,7 +28,9 @@ class PreferenceRepositoryImpl @Inject constructor(
         val ONBOARDING_COMPLETED = booleanPreferencesKey(Constants.PREF_ONBOARDING_COMPLETED)
         val IS_PREMIUM = booleanPreferencesKey(Constants.PREF_IS_PREMIUM)
         val PREMIUM_EXPIRY = longPreferencesKey(Constants.PREF_PREMIUM_EXPIRY)
+        val ACTIVE_ENTITLEMENTS = stringSetPreferencesKey("active_entitlements")
         val AUTO_SYNC = booleanPreferencesKey(Constants.PREF_AUTO_SYNC)
+        val DEBUG_FORCE_PREMIUM = booleanPreferencesKey("debug_force_premium")
     }
 
     override fun isOnboardingCompleted(): Flow<Boolean> {
@@ -90,6 +93,26 @@ class PreferenceRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getActiveEntitlements(): Flow<List<String>> {
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                preferences[PreferencesKeys.ACTIVE_ENTITLEMENTS]?.toList() ?: emptyList()
+            }
+    }
+
+    override suspend fun setActiveEntitlements(entitlements: List<String>) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ACTIVE_ENTITLEMENTS] = entitlements.toSet()
+        }
+    }
+
     override fun isAutoSyncEnabled(): Flow<Boolean> {
         return dataStore.data
             .catch { exception ->
@@ -107,6 +130,31 @@ class PreferenceRepositoryImpl @Inject constructor(
     override suspend fun setAutoSyncEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AUTO_SYNC] = enabled
+        }
+    }
+
+    override fun isDebugForcePremium(): Flow<Boolean> {
+        if (!com.shaikh.storentry.BuildConfig.DEBUG) {
+            return kotlinx.coroutines.flow.flowOf(false)
+        }
+        return dataStore.data
+            .catch { exception ->
+                if (exception is IOException) {
+                    emit(emptyPreferences())
+                } else {
+                    throw exception
+                }
+            }
+            .map { preferences ->
+                preferences[PreferencesKeys.DEBUG_FORCE_PREMIUM] ?: false
+            }
+    }
+
+    override suspend fun setDebugForcePremium(enabled: Boolean) {
+        if (com.shaikh.storentry.BuildConfig.DEBUG) {
+            dataStore.edit { preferences ->
+                preferences[PreferencesKeys.DEBUG_FORCE_PREMIUM] = enabled
+            }
         }
     }
 }

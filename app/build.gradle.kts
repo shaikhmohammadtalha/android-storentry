@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.hilt)
@@ -10,17 +12,29 @@ plugins {
 
 android {
     namespace = "com.shaikh.storentry"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.shaikh.storentry"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "REVENUECAT_API_KEY", "\"goog_placeholder_api_key\"")
+        val revenueCatKey = providers.gradleProperty("REVENUECAT_API_KEY")
+            .orNull ?: project.findProperty("REVENUECAT_API_KEY")?.toString()
+            ?: run {
+                val localProperties = Properties()
+                val localPropertiesFile = project.rootProject.file("local.properties")
+                if (localPropertiesFile.exists()) {
+                    localPropertiesFile.inputStream().use { 
+                        localProperties.load(it) 
+                    }
+                }
+                localProperties.getProperty("REVENUECAT_API_KEY") ?: "goog_placeholder_api_key"
+            }
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenueCatKey\"")
     }
 
     buildTypes {

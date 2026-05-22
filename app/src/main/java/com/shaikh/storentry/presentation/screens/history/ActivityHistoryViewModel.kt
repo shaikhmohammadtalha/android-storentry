@@ -15,6 +15,10 @@ import javax.inject.Inject
 
 import com.shaikh.storentry.domain.repository.ProductRepository
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.*
 
 @HiltViewModel
 class ActivityHistoryViewModel @Inject constructor(
@@ -55,29 +59,54 @@ class ActivityHistoryViewModel @Inject constructor(
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
                 .collect { records ->
-                    _uiState.update { 
-                        it.copy(
-                            records = records,
-                            filteredRecords = filterRecords(records, it.selectedFilter),
-                            isLoading = false
-                        ) 
+                    viewModelScope.launch(Dispatchers.Default) {
+                        val filtered = filterRecords(records, _uiState.value.selectedFilter)
+                        val grouped = groupRecordsByDate(filtered)
+                        _uiState.update { 
+                            it.copy(
+                                records = records,
+                                filteredRecords = filtered,
+                                groupedRecords = grouped,
+                                isLoading = false
+                            ) 
+                        }
                     }
                 }
         }
     }
 
     fun onFilterSelected(filter: HistoryFilter) {
-        _uiState.update { 
-            it.copy(
-                selectedFilter = filter,
-                filteredRecords = filterRecords(it.records, filter)
-            ) 
+        viewModelScope.launch(Dispatchers.Default) {
+            val filtered = filterRecords(_uiState.value.records, filter)
+            val grouped = groupRecordsByDate(filtered)
+            _uiState.update { 
+                it.copy(
+                    selectedFilter = filter,
+                    filteredRecords = filtered,
+                    groupedRecords = grouped
+                ) 
+            }
         }
     }
 
     private fun filterRecords(records: List<com.shaikh.storentry.domain.model.HistoryRecord>, filter: HistoryFilter): List<com.shaikh.storentry.domain.model.HistoryRecord> {
         if (filter == HistoryFilter.ALL) return records
         return records.filter { it.actionType.toFilter() == filter }
+    }
+
+    private fun groupRecordsByDate(records: List<com.shaikh.storentry.domain.model.HistoryRecord>): Map<String, List<com.shaikh.storentry.domain.model.HistoryRecord>> {
+        val today = Calendar.getInstance().apply { set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }.timeInMillis
+        val yesterday = today - 86400000
+        
+        val sdf = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+        
+        return records.groupBy { record ->
+            when {
+                record.timestamp >= today -> "Today"
+                record.timestamp >= yesterday -> "Yesterday"
+                else -> sdf.format(Date(record.timestamp))
+            }
+        }
     }
 
     fun clearHistory() {

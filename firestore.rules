@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// Storentry Firestore Security Rules
+// These rules ensure that:
+// 1. Only authenticated users can access any data.
+// 2. Users can ONLY read/write their own data (sandboxed by UID).
+// 3. No cross-user data leakage is possible.
+//
+// HOW TO DEPLOY:
+//   Option A: Firebase Console → Firestore → Rules → Paste these rules → Publish
+//   Option B: Install Firebase CLI and run: firebase deploy --only firestore:rules
+//
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny: block all reads/writes unless explicitly allowed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Per-user data sandbox
+    match /users/{userId} {
+      // Only the authenticated owner can read/write their own user document
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Products sub-collection: only the owner can CRUD their own products
+      match /products/{productId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+
+        // Validate that required fields are present on create/update
+        allow create: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.keys().hasAll(['name', 'category', 'quantity'])
+                      && request.resource.data.name is string
+                      && request.resource.data.quantity is int;
+
+        allow update: if request.auth != null
+                      && request.auth.uid == userId
+                      && request.resource.data.name is string;
+      }
+    }
+  }
+}

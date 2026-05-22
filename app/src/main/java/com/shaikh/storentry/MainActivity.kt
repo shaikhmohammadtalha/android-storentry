@@ -11,11 +11,16 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private val pendingProductId = androidx.compose.runtime.mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install OS-level splash screen before super.onCreate
         installSplashScreen()
 
         super.onCreate(savedInstanceState)
+
+        // Handle intent if launched from notification
+        handleIntent(intent)
 
         // Skill: edge-to-edge — Step 2.
         // enableEdgeToEdge from ComponentActivity handles status/nav bar icon colors automatically.
@@ -31,8 +36,24 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 // No Surface wrapper here — it would fight with edge-to-edge insets.
                 // Each Scaffold handles its own background color.
-                AppNavGraph()
+                AppNavGraph(
+                    pendingProductId = pendingProductId.value,
+                    onNotificationHandled = { pendingProductId.value = null }
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: android.content.Intent?) {
+        val productId = intent?.getStringExtra("PRODUCT_ID")
+        if (!productId.isNullOrBlank()) {
+            pendingProductId.value = productId
         }
     }
 }

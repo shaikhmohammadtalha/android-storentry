@@ -64,7 +64,7 @@ import com.shaikh.storentry.presentation.components.AppCard
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.utils.UiState
 import com.shaikh.storentry.presentation.components.LoadingView
 import com.shaikh.storentry.presentation.components.ErrorView

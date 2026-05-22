@@ -175,7 +175,7 @@ fun AboutStorentryScreen(
                     PolicyLinkRow(
                         label = stringResource(id = R.string.terms_of_service),
                         onClick = {
-                            launchWebPage(context, "https://storentry.in/terms")
+                            launchWebPage(context, context.getString(R.string.url_terms_of_service))
                         }
                     )
                     Divider(
@@ -185,7 +185,7 @@ fun AboutStorentryScreen(
                     PolicyLinkRow(
                         label = stringResource(id = R.string.privacy_policy),
                         onClick = {
-                            launchWebPage(context, "https://storentry.in/privacy")
+                            launchWebPage(context, context.getString(R.string.url_privacy_policy))
                         }
                     )
                 }

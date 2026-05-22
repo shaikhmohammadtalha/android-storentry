@@ -1,0 +1,57 @@
+# Storentry Privacy Policy
+
+**Last Updated: May 2026**
+
+Welcome to **Storentry**, the fastest offline-first inventory management application built specifically for local shop owners, kirana stores, pharmacies, electronics retailers, and small businesses. We prioritize speed, absolute data ownership, and extreme privacy. 
+
+This Privacy Policy explains how your data is collected, stored, and utilized within the Storentry application.
+
+---
+
+## 1. Core Philosophy: Offline-First & Absolute Data Ownership
+Storentry is designed around a strict "Offline-First" model. 
+* **Local Storage:** All your business inventory records, product information (names, categories, stock counts), pricing details (purchase and selling prices), alerts, notifications, and activity history are stored securely and directly inside your device's local database (Room DB).
+* **Zero Tracking:** We do not track your location, read your contacts, monitor device identifiers, or run background analytics software.
+* **No Mandatory Sign-ups:** You can use 100% of Storentry's core features completely as a guest with no signup, email, or telephone number required.
+
+---
+
+## 2. Optional Cloud Backups & Firebase Firestore Sync
+To safeguard your database against device loss or damage, Storentry offers optional Cloud Backup and Synchronization features.
+
+* **Voluntary Opt-in:** Cloud backups are completely voluntary. They are only activated if and when you actively sign in using your Google Account.
+* **Firebase Firestore Storage:** When signed in, your inventory records are backed up to secure, private cloud servers hosted on Google Firebase Firestore.
+* **Data Fields Synced:** The database fields synced to Firestore include:
+  - Unique product identifiers (`id`)
+  - Product Name (`name`)
+  - Category (`category`)
+  - Current Stock Quantity (`quantity`)
+  - Purchase Price (`purchasePrice`)
+  - Selling Price (`sellingPrice`)
+  - Low Stock Alerts Threshold (`lowStockThreshold`)
+* **Private Sandboxing:** All data uploaded to the cloud is partitioned by your unique Google user ID (`uid`). Only your authenticated account can access, download, or edit your specific database.
+
+---
+
+## 3. Data Protection & Security
+* **Authentication:** Google Sign-in utilizes the modern Android Credential Manager API, ensuring industry-standard security. Storentry never sees or stores your Google password.
+* **Local Security:** Because data is stored in your device's internal sandbox, other applications cannot access your inventory database.
+* **Control Over Backups:** If you decide to remove your cloud backup, you can log out from the application, which automatically wipes the local data cache and clears cloud sync states, or delete the app entirely.
+
+---
+
+## 4. Conflict Resolution Transparency
+If you log into an account that already contains existing cloud backup data, Storentry provides full transparency and control:
+* We never automatically delete or overwrite your data without permission.
+* You will be presented with a clear **Sync Data Conflict Resolution** prompt allowing you to:
+  - **Merge (Cloud is Primary):** Combine device and cloud items. For duplicates, keep the cloud values.
+  - **Merge (Device is Primary):** Combine device and cloud items. For duplicates, keep the device values.
+  - **Overwrite Device:** Completely replace local device records with cloud backup records.
+  - **Overwrite Cloud:** Completely replace cloud backup records with local device records.
+
+---
+
+## 5. Contact Support
+If you have any questions, feedback, or concerns regarding your business data privacy, feel free to contact us:
+* **Developer/Support Email:** shaikhmot@gmail.com
+* **WhatsApp Active Support:** +91 80973 56465

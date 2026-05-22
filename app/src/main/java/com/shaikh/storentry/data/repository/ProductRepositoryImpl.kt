@@ -17,7 +17,8 @@ import javax.inject.Singleton
 class ProductRepositoryImpl @Inject constructor(
     private val productDao: ProductDao,
     private val historyRepository: com.shaikh.storentry.domain.repository.HistoryRepository,
-    private val cloudSyncManager: com.shaikh.storentry.data.sync.CloudSyncManager
+    private val cloudSyncManager: com.shaikh.storentry.data.sync.CloudSyncManager,
+    private val notificationHelper: com.shaikh.storentry.utils.NotificationHelper
 ) : ProductRepository {
 
     override fun getAllProducts(): Flow<List<Product>> {
@@ -81,6 +82,11 @@ class ProductRepositoryImpl @Inject constructor(
             }
             historyRepository.addRecord(record)
         }
+
+        // Trigger real-time low-stock notification if quantity falls below or equal to threshold
+        if (product.quantity <= product.lowStockThreshold && (oldProduct == null || oldProduct.quantity != product.quantity)) {
+            notificationHelper.showLowStockAlert(product.id, product.name, product.quantity)
+        }
     }
 
     override suspend fun deleteProduct(product: Product) {
@@ -128,6 +134,11 @@ class ProductRepositoryImpl @Inject constructor(
                     metadata = "Total: $newQuantity units${if (newQuantity <= product.lowStockThreshold) " · Low Stock Alert triggered" else ""}"
                 )
             )
+
+            // Trigger real-time low-stock notification if quantity falls below or equal to threshold
+            if (newQuantity <= product.lowStockThreshold) {
+                notificationHelper.showLowStockAlert(productId, product.name, newQuantity)
+            }
         }
     }
 

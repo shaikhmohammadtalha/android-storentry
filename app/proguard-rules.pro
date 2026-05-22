@@ -1,43 +1,9 @@
-# Kotlin
--keep class kotlin.** { *; }
--keep class kotlinx.** { *; }
+# ProGuard rules for Storentry
 
-# Hilt
--keep class dagger.hilt.** { *; }
--keep @dagger.hilt.android.HiltAndroidApp class * { *; }
--keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
-
-# Room
--keep class * extends androidx.room.RoomDatabase
--keep @androidx.room.Entity class *
--keep @androidx.room.Dao class *
-
-# DataStore
--keep class androidx.datastore.** { *; }
-
-# WorkManager
--keep class * extends androidx.work.Worker
--keep class * extends androidx.work.CoroutineWorker
--keep class androidx.work.** { *; }
-
-# Coil
--keep class coil.** { *; }
-
-# Coroutines
--keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
--keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
-
-# Models
+# Keep project-specific models and database entities to prevent key fields/constructors from being obfuscated or stripped.
 -keep class com.shaikh.storentry.domain.model.** { *; }
 -keep class com.shaikh.storentry.data.local.entity.** { *; }
 
-# Firebase Analytics
--keep class com.google.android.gms.measurement.** { *; }
--keep class com.google.firebase.analytics.** { *; }
-
-# Firebase Crashlytics
+# Firebase Crashlytics requirements for crash mapping
 -keepattributes SourceFile,LineNumberTable
 -keep public class com.google.firebase.crashlytics.** { *; }
-
-# Google Play Services
--keep class com.google.android.gms.common.** { *; }

@@ -2,8 +2,10 @@ package com.shaikh.storentry.presentation.screens.paywall
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,9 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.AllInclusive
-import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -39,25 +39,38 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.shaikh.storentry.R
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.automirrored.filled.Login
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+
 import com.shaikh.storentry.presentation.components.AppButton
 import com.shaikh.storentry.presentation.components.ErrorView
+import com.shaikh.storentry.presentation.components.EmptyStateView
 import com.shaikh.storentry.presentation.components.LoadingView
 import kotlinx.coroutines.flow.collectLatest
 
@@ -69,11 +82,22 @@ import kotlinx.coroutines.flow.collectLatest
 fun PaywallScreen(
     onNavigateBack: () -> Unit,
     onPurchaseSuccess: () -> Unit,
+    onNavigateToSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: PaywallViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
+    // Observe auth state for subscribe button gating
+    val authEntryPoint = remember {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            com.shaikh.storentry.di.AuthEntryPoint::class.java
+        )
+    }
+    val authUser by authEntryPoint.authRepository().currentUser.collectAsState()
+    var showSignInRequiredDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.purchaseSuccessEvent.collectLatest {
@@ -104,7 +128,7 @@ fun PaywallScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
@@ -117,6 +141,12 @@ fun PaywallScreen(
                 .padding(innerPadding)
         ) {
             when (val state = uiState) {
+                is PaywallUiState.Idle -> {
+                    LaunchedEffect(Unit) {
+                        viewModel.loadOfferings()
+                    }
+                    LoadingView()
+                }
                 is PaywallUiState.Loading -> {
                     LoadingView()
                 }
@@ -126,15 +156,23 @@ fun PaywallScreen(
                         isPremium = isPremium,
                         priceText = state.priceText,
                         onSubscribeClick = {
-                            val activity = context as? Activity
-                            if (activity != null) {
-                                viewModel.purchase(activity)
+                            if (authUser != null) {
+                                val activity = context as? Activity
+                                if (activity != null) {
+                                    viewModel.purchase(activity)
+                                } else {
+                                    Toast.makeText(context, "Billing error: Could not identify host container.", Toast.LENGTH_SHORT).show()
+                                }
                             } else {
-                                Toast.makeText(context, "Billing error: Could not identify host container.", Toast.LENGTH_SHORT).show()
+                                showSignInRequiredDialog = true
                             }
                         },
                         onRestoreClick = {
-                            viewModel.restorePurchases()
+                            if (authUser != null) {
+                                viewModel.restorePurchases()
+                            } else {
+                                showSignInRequiredDialog = true
+                            }
                         }
                     )
                 }
@@ -146,8 +184,83 @@ fun PaywallScreen(
                         }
                     )
                 }
+                is PaywallUiState.Empty -> {
+                    EmptyStateView(
+                        title = "No Plans Available",
+                        subtitle = "We couldn't retrieve subscription catalog information. Please check your connectivity and try again.",
+                        icon = Icons.Default.Star,
+                        buttonText = "Retry",
+                        onButtonClick = {
+                            viewModel.loadOfferings()
+                        }
+                    )
+                }
             }
         }
+    }
+
+    // Sign-In Required Dialog — shown when guest user taps Subscribe
+    if (showSignInRequiredDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignInRequiredDialog = false },
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AccountCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(id = R.string.sign_in_required_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Text(
+                    text = stringResource(id = R.string.sign_in_required_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.outline
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSignInRequiredDialog = false
+                        onNavigateToSettings()
+                    },
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Login,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(id = R.string.btn_go_to_sign_in),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignInRequiredDialog = false }) {
+                    Text(
+                        text = stringResource(id = R.string.cancel),
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            }
+        )
     }
 }
 
@@ -160,13 +273,34 @@ private fun PaywallContent(
 ) {
     val scrollState = rememberScrollState()
 
+    // Pulse and Scale Micro-animations for Premium Subscription Card
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = EaseInOutQuad),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+    val borderAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1200, easing = EaseInOutQuad),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "borderAlpha"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Box(
             modifier = Modifier
@@ -188,7 +322,7 @@ private fun PaywallContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             text = stringResource(id = R.string.paywall_title),
@@ -199,7 +333,7 @@ private fun PaywallContent(
             modifier = Modifier.padding(horizontal = 24.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
             text = stringResource(id = R.string.paywall_subtitle),
@@ -209,8 +343,9 @@ private fun PaywallContent(
             modifier = Modifier.padding(horizontal = 32.dp)
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(28.dp))
 
+        // Premium Benefits Checklist Card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -247,7 +382,93 @@ private fun PaywallContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // Visually Elevated & Animated Single Monthly Plan Card
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .scale(if (isPremium) 1f else scale)
+                .shadow(
+                    elevation = if (isPremium) 2.dp else 12.dp,
+                    shape = RoundedCornerShape(20.dp),
+                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                ),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            border = androidx.compose.foundation.BorderStroke(
+                width = if (isPremium) 1.dp else 2.dp,
+                color = if (isPremium) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (!isPremium) {
+                    // Badge to show 7-day trial info
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Text(
+                            text = "7-DAY FREE TRIAL INCLUDED",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Storentry Pro Monthly",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = priceText,
+                        style = MaterialTheme.typography.displayMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 44.sp
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "/ month",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "Billed monthly. Cancel anytime in Google Play.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
 
         if (isPremium) {
             Card(
@@ -286,28 +507,6 @@ private fun PaywallContent(
                 }
             }
         } else {
-            Row(
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = priceText,
-                    style = MaterialTheme.typography.displayMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 48.sp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "/ month",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             AppButton(
                 text = stringResource(id = R.string.paywall_cta),
                 onClick = onSubscribeClick,
@@ -338,8 +537,65 @@ private fun PaywallContent(
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(32.dp))
+
+        // Legal Terms & Disclosures Section
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(id = R.string.subscription_renewal_disclosure),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center,
+                fontSize = 11.sp,
+                lineHeight = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val uriHandler = LocalUriHandler.current
+                val privacyUrl = stringResource(id = R.string.url_privacy_policy)
+                val termsUrl = stringResource(id = R.string.url_terms_of_service)
+
+                Text(
+                    text = stringResource(id = R.string.privacy_policy),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri(privacyUrl)
+                    }
+                )
+
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                )
+
+                Text(
+                    text = stringResource(id = R.string.terms_of_service),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable {
+                        uriHandler.openUri(termsUrl)
+                    }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
@@ -371,9 +627,9 @@ private fun BenefitItem(
                 modifier = Modifier.size(20.dp)
             )
         }
-        
+
         Spacer(modifier = Modifier.width(16.dp))
-        
+
         Column(
             modifier = Modifier.weight(1f)
         ) {
